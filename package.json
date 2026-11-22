@@ -1,0 +1,51 @@
+{
+  "name": "quiz-solver",
+  "version": "0.2.0",
+  "description": "Desktop quiz assistant: capture a multiple-choice question from screen, embedded browser, or screenshot; OCR it; answer via OpenRouter with user-selected documents and confidence scoring.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --linux AppImage"
+  },
+  "build": {
+    "publish": null,
+    "appId": "com.quizsolver.app",
+    "productName": "Quiz Solver",
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "renderer.js",
+      "styles.css",
+      "lib/**/*",
+      "assets/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "node_modules/tesseract.js/**",
+      "assets/**"
+    ],
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        }
+      ],
+      "category": "Utility",
+      "artifactName": "QuizSolver-${version}-${arch}.AppImage"
+    },
+    "electronDownload": {
+      "cache": "/workspace/.electron-cache"
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "dependencies": {
+    "pdf-parse": "^1.1.1",
+    "tesseract.js": "^5.1.1"
+  }
+}

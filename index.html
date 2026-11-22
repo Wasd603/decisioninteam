@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; script-src 'self'">
+  <title>Quiz Solver</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Quiz Solver</h1>
+    <button id="btn-settings" class="ghost">Settings</button>
+  </header>
+
+  <main>
+    <section id="pane-capture" class="pane">
+      <h2>1. Capture the question</h2>
+      <div class="row">
+        <button id="btn-capture-screen">Capture screen</button>
+        <button id="btn-capture-window">Capture window</button>
+        <button id="btn-upload">Upload screenshot</button>
+        <label class="file-label">Paste image <input type="file" id="paste-hint" hidden></label>
+      </div>
+      <div class="row">
+        <input type="text" id="browser-url" placeholder="https://teams.cloud.microsoft/ ..." spellcheck="false">
+        <button id="btn-browser-go" class="ghost">Go</button>
+        <button id="btn-browser-back" class="ghost">Back</button>
+        <button id="btn-capture-browser">Capture this page</button>
+      </div>
+      <webview id="webview" src="about:blank" allow=""></webview>
+      <div id="capture-preview-wrap">
+        <img id="capture-preview" alt="Captured question" hidden>
+        <p id="capture-placeholder">No capture yet — use a capture button, upload a screenshot, or paste (Ctrl+V).</p>
+      </div>
+      <button id="btn-recrop" hidden>Adjust crop</button>
+    </section>
+
+    <section id="pane-docs" class="pane">
+      <h2>2. Reference documents (optional)</h2>
+      <div class="row">
+        <button id="btn-add-docs">Select documents</button>
+        <button id="btn-clear-docs" class="ghost">Clear all</button>
+      </div>
+      <ul id="doc-list"></ul>
+    </section>
+
+    <section id="pane-solve" class="pane">
+      <h2>3. Solve</h2>
+      <button id="btn-solve" disabled>Solve question</button>
+      <div id="status" class="status"></div>
+      <div id="results" hidden>
+        <h3>Answers <small>(1–4 may be correct)</small></h3>
+        <table id="answer-table">
+          <thead><tr><th>Choice</th><th>Correct</th><th>Confidence</th><th>Explanation</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <details>
+          <summary>OCR text</summary>
+          <pre id="ocr-text"></pre>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="settings-dialog">
+    <h2>Settings</h2>
+    <label>OpenRouter API key
+      <input type="password" id="api-key" placeholder="sk-or-...">
+    </label>
+    <label>Answer model
+      <input type="text" id="answer-model" placeholder="openai/gpt-4o-mini">
+    </label>
+    <label>Decision model (confidence scoring)
+      <input type="text" id="decision-model" placeholder="openai/gpt-4o-mini">
+    </label>
+    <label>OCR language
+      <input type="text" id="ocr-lang" placeholder="ron+hun+eng">
+    </label>
+    <div class="row">
+      <button id="btn-settings-save">Save</button>
+      <button id="btn-settings-close" class="ghost">Close</button>
+    </div>
+  </dialog>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
