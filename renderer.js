@@ -230,7 +230,7 @@ el('btn-solve').onclick = async () => {
     });
     if (!res.ok) throw new Error(res.error);
     renderResults(res.result);
-    setStatus('Done.');
+    setStatus(res.result.warning || 'Done.', !!res.result.warning);
   } catch (err) {
     setStatus(err.message, true);
   } finally {
