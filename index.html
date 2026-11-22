@@ -55,7 +55,7 @@
           <tbody></tbody>
         </table>
         <details>
-          <summary>OCR text</summary>
+          <summary>Recognized question</summary>
           <pre id="ocr-text"></pre>
         </details>
       </div>
@@ -67,14 +67,11 @@
     <label>OpenRouter API key
       <input type="password" id="api-key" placeholder="sk-or-...">
     </label>
-    <label>Answer model
+    <label>Vision answer model
       <input type="text" id="answer-model" placeholder="openai/gpt-4o-mini">
     </label>
-    <label>Decision model (confidence scoring)
+    <label>Decision model (vision, confidence scoring)
       <input type="text" id="decision-model" placeholder="openai/gpt-4o-mini">
-    </label>
-    <label>OCR language
-      <input type="text" id="ocr-lang" placeholder="ron+hun+eng">
     </label>
     <div class="row">
       <button id="btn-settings-save">Save</button>

@@ -1,7 +1,7 @@
 {
   "name": "quiz-solver",
-  "version": "0.2.0",
-  "description": "Desktop quiz assistant: capture a multiple-choice question from screen, embedded browser, or screenshot; OCR it; answer via OpenRouter with user-selected documents and confidence scoring.",
+  "version": "0.3.0",
+  "description": "Desktop quiz assistant: capture a multiple-choice question from screen, embedded browser, or screenshot; a vision model reads it via OpenRouter and answers with confidence scoring.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -18,13 +18,8 @@
       "renderer.js",
       "styles.css",
       "lib/**/*",
-      "assets/**/*",
       "node_modules/**/*",
       "package.json"
-    ],
-    "asarUnpack": [
-      "node_modules/tesseract.js/**",
-      "assets/**"
     ],
     "linux": {
       "target": [
@@ -44,8 +39,7 @@
     "electron-builder": "^25.1.8"
   },
   "dependencies": {
-    "pdf-parse": "^1.1.1",
-    "tesseract.js": "^5.1.1"
+    "pdf-parse": "^1.1.1"
   },
   "author": "Wasd603"
 }

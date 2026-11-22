@@ -14,15 +14,13 @@ function loadSettings() {
   return {
     apiKey: localStorage.getItem('apiKey') || '',
     answerModel: localStorage.getItem('answerModel') || '',
-    decisionModel: localStorage.getItem('decisionModel') || '',
-    ocrLang: localStorage.getItem('ocrLang') || ''
+    decisionModel: localStorage.getItem('decisionModel') || ''
   };
 }
 function saveSettings(s) {
   localStorage.setItem('apiKey', s.apiKey);
   localStorage.setItem('answerModel', s.answerModel);
   localStorage.setItem('decisionModel', s.decisionModel);
-  localStorage.setItem('ocrLang', s.ocrLang);
 }
 
 async function captureSource(type) {
@@ -221,15 +219,14 @@ el('btn-solve').onclick = async () => {
   }
   btnSolve.disabled = true;
   el('results').hidden = true;
-  setStatus('Running OCR…');
+  setStatus('Reading the question with the vision model…');
   try {
     const res = await window.api.solveQuestion({
       image: currentImage,
       documents,
       apiKey: settings.apiKey,
       answerModel: settings.answerModel,
-      decisionModel: settings.decisionModel,
-      ocrLang: settings.ocrLang
+      decisionModel: settings.decisionModel
     });
     if (!res.ok) throw new Error(res.error);
     renderResults(res.result);
@@ -263,7 +260,7 @@ function renderResults(result) {
     tr.append(choice, correct, conf, expl);
     tbody.appendChild(tr);
   }
-  el('ocr-text').textContent = result.ocrText;
+  el('ocr-text').textContent = result.questionText || '(model returned no question text)';
   el('results').hidden = false;
 }
 
@@ -272,15 +269,13 @@ el('btn-settings').onclick = () => {
   el('api-key').value = s.apiKey;
   el('answer-model').value = s.answerModel;
   el('decision-model').value = s.decisionModel;
-  el('ocr-lang').value = s.ocrLang || 'ron+hun+eng';
   settingsDialog.showModal();
 };
 el('btn-settings-save').onclick = () => {
   saveSettings({
     apiKey: el('api-key').value.trim(),
     answerModel: el('answer-model').value.trim(),
-    decisionModel: el('decision-model').value.trim(),
-    ocrLang: el('ocr-lang').value.trim()
+    decisionModel: el('decision-model').value.trim()
   });
   settingsDialog.close();
 };

@@ -1,30 +1,30 @@
 # Quiz Solver
 
 A Linux-compatible Electron desktop app that answers multiple-choice questions captured from your screen.
-Questions in Romanian, Hungarian, and English are supported (OCR defaults to `ron+hun+eng`).
+Questions in Romanian, Hungarian, and English are supported; a vision-capable model reads the screenshot directly, so no separate OCR stage is needed.
 
 **Flow:** capture a quiz question (window capture, screen capture, screenshot file, paste, or the built-in
-browser) → OCR (tesseract.js) → answer model (OpenRouter) with optional user-selected reference documents →
-decision model (OpenRouter) that scores confidence → answers (1 to 4 may be correct) with confidence scores.
+browser) → vision answer model (OpenRouter) with optional user-selected reference documents →
+vision decision model (OpenRouter) that scores confidence → answers (1 to 4 may be correct) with confidence scores.
 
 ## Features
 
 - **Capture screen / Capture window** — pick a monitor or window via Electron's `desktopCapturer`.
 - **Built-in browser** — load the quiz page in the embedded webview and capture it directly.
 - **Upload or paste** a screenshot file, or paste an image from the clipboard (Ctrl+V).
-- **Crop tool** — drag a rectangle around just the question for cleaner OCR.
+- **Crop tool** — drag a rectangle around just the question for a cleaner, focused image.
 - **Reference documents** — attach txt/md/pdf/json/csv/html files; the answer model grounds its answer in them.
-- **Two-stage pipeline** — an answer model proposes the correct choices, then a decision model independently
-  verifies and assigns a 0–1 confidence score to each choice.
-- **Settings** — your OpenRouter API key plus model names for both stages (defaults to `openai/gpt-4o-mini`).
-  API key is stored locally in the renderer's localStorage only.
+- **Two-stage pipeline** — a vision-capable answer model reads the screenshot and proposes the correct choices,
+  then a vision decision model independently verifies and assigns a 0–1 confidence score to each choice.
+- **Settings** — your OpenRouter API key plus vision model names for both stages (defaults to `openai/gpt-4o-mini`).
+  Both models must be vision-capable. API key is stored locally in the renderer's localStorage only.
 
 ## Requirements
 
 - Node.js 18+
 - Linux: X11 works out of the box. On **Wayland**, screen/window capture also requires Electron's PipeWire
   support (`--enable-features=WebRTCPipeWireCapturer`); prefer running under XWayland if capture fails.
-- Free / no system OCR dependency: tesseract.js runs as WASM.
+- No OCR libraries — the captured image is sent straight to a vision model via OpenRouter.
 
 ## Run
 
@@ -37,8 +37,8 @@ npm install
 npm run dist
 ```
 
-The binary lands in `dist/QuizSolver-0.2.0-x86_64.AppImage`. Make it executable and run it —
-no installation needed, language data for OCR (Romanian, Hungarian, English) is bundled inside the image, so OCR works offline:
+The binary lands in `dist/QuizSolver-0.3.0-x86_64.AppImage`. Make it executable and run it —
+no installation needed:
 
 ```bash
 chmod +x QuizSolver-0.1.0-x86_64.AppImage
@@ -61,13 +61,12 @@ npm start
 ## How the pipeline works (`lib/pipeline.js`)
 
 ```
-capture → runOcr() → answerQuestion() → scoreAnswers() → answers + confidence
+capture → answerQuestion(image, docs) → scoreAnswers(image, proposed) → answers + confidence
 ```
 
-- `lib/ocr.js` — tesseract.js OCR on the captured PNG.
-- `lib/openrouter.js` — two chat-completion calls in JSON mode:
-  - **Answer model** — given OCR text (+ document context), returns `answers[{choice, correct, explanation}]` covering every choice.
-  - **Decision model** — independently judges each choice and returns `answers[{choice, correct, confidence, explanation}]`.
+- `lib/openrouter.js` — two vision chat-completion calls in JSON mode:
+  - **Vision answer model** — reads the question from the screenshot (+ document context), returns `question_text` and `answers[{choice, correct, explanation}]` covering every choice.
+  - **Vision decision model** — independently judges each choice from the image and returns `answers[{choice, correct, confidence, explanation}]`.
 - Output table shows each choice, correct/incorrect, confidence %, and explanation.
 
 ## Notes
