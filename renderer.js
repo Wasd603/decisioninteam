@@ -81,6 +81,24 @@ function setFrame(dataUrl) {
   btnSolve.disabled = false;
 }
 
+
+async function optimizeImage(dataUrl) {
+  const img = new Image();
+  await new Promise((resolve, reject) => {
+    img.onload = resolve;
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+  const maxSide = 1600;
+  const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+  if (scale === 1) return dataUrl;
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(img.naturalWidth * scale);
+  canvas.height = Math.round(img.naturalHeight * scale);
+  canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/jpeg', 0.9);
+}
+
 function setStatus(text, isError) {
   statusEl.textContent = text;
   statusEl.className = 'status' + (isError ? ' error' : '');
@@ -197,8 +215,9 @@ el('btn-solve').onclick = async () => {
   el('results').hidden = true;
   setStatus('Reading the question with the vision model…');
   try {
+    const image = await optimizeImage(currentImage);
     const res = await window.api.solveQuestion({
-      image: currentImage,
+      image,
       documents,
       apiKey: settings.apiKey,
       answerModel: settings.answerModel,
