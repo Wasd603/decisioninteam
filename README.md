@@ -3,14 +3,12 @@
 A Linux-compatible Electron desktop app that answers multiple-choice questions captured from your screen.
 Questions in Romanian, Hungarian, and English are supported; a vision-capable model reads the screenshot directly, so no separate OCR stage is needed.
 
-**Flow:** capture a quiz question (window capture, screen capture, screenshot file, paste, or the built-in
-browser) → vision answer model (OpenRouter) with optional user-selected reference documents →
+**Flow:** capture a quiz question (window capture, screen capture, screenshot file, or paste) → vision answer model (OpenRouter) with optional user-selected reference documents →
 vision decision model (OpenRouter) that scores confidence → answers (1 to 4 may be correct) with confidence scores.
 
 ## Features
 
 - **Capture screen / Capture window** — pick a monitor or window via Electron's `desktopCapturer`.
-- **Built-in browser** — load the quiz page in the embedded webview and capture it directly.
 - **Upload or paste** a screenshot file, or paste an image from the clipboard (Ctrl+V).
 - **Crop tool** — drag a rectangle around just the question for a cleaner, focused image.
 - **Reference documents** — attach txt/md/pdf/json/csv/html files; the answer model grounds its answer in them.

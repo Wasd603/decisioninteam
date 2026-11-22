@@ -1,7 +1,6 @@
 const el = (id) => document.getElementById(id);
 
 const settingsDialog = el('settings-dialog');
-const webview = el('webview');
 const capturePreview = el('capture-preview');
 const capturePlaceholder = el('capture-placeholder');
 const btnSolve = el('btn-solve');
@@ -71,18 +70,6 @@ async function grabFrame(sourceId, name) {
     setStatus(`Captured: ${name}. Click Solve, or Adjust crop.`);
   } catch (err) {
     setStatus(`Capture failed: ${err.message}`, true);
-  }
-}
-
-async function captureWebview() {
-  try {
-    const image = await webview.capturePage();
-    if (image.isEmpty()) throw new Error('empty capture');
-    setFrame(image.toDataURL());
-    await maybeCrop();
-    setStatus('Captured browser page. Click Solve, or Adjust crop.');
-  } catch (err) {
-    setStatus(`Browser capture failed (${err.message}). Falling back: maximize the page and use Capture screen instead.`, true);
   }
 }
 
@@ -170,17 +157,6 @@ window.addEventListener('message', async (e) => {
   img.src = currentImage;
 });
 
-el('btn-browser-go').onclick = () => {
-  let url = el('browser-url').value.trim();
-  if (!url) return;
-  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
-  webview.loadURL(url);
-};
-el('browser-url').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') el('btn-browser-go').click();
-});
-el('btn-browser-back').onclick = () => { try { webview.goBack(); } catch (e) {} };
-el('btn-capture-browser').onclick = captureWebview;
 
 el('btn-add-docs').onclick = async () => {
   const docs = await window.api.pickDocument();

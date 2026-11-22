@@ -72,15 +72,6 @@ input[type="text"], input[type="password"] {
   font-size: 13px;
 }
 
-#webview {
-  width: 100%;
-  height: 320px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: #fff;
-  display: block;
-}
-
 #capture-preview-wrap {
   margin-top: 10px;
   border: 1px dashed var(--border);
