@@ -14,10 +14,11 @@ vision decision model (OpenRouter) that scores confidence → answers (1 to 4 ma
 - **Upload or paste** a screenshot file, or paste an image from the clipboard (Ctrl+V).
 - **Crop tool** — drag a rectangle around just the question for a cleaner, focused image.
 - **Reference documents** — attach txt/md/pdf/json/csv/html files; the answer model grounds its answer in them.
-- **Two-stage pipeline** — a vision-capable answer model reads the screenshot and proposes the correct choices,
-  then a vision decision model independently verifies and assigns a 0–1 confidence score to each choice.
-- **Settings** — your OpenRouter API key plus vision model names for both stages (defaults to `openai/gpt-4o-mini`).
-  Both models must be vision-capable. API key is stored locally in the renderer's localStorage only.
+- **Two-stage pipeline** — a vision-capable answer model reads the screenshot, extracts the question text, and
+  proposes the correct choices; the extracted text is then passed to a decision model (any chat model, e.g.
+  `openai/gpt-4o-mini` or `perplexity/sonar-reasoning-pro`) that independently verifies and scores each choice.
+- **Settings** — your OpenRouter API key, a vision-capable answer model, and any chat model for the decision
+  stage (both default to `openai/gpt-4o-mini`). API key is stored locally in the renderer's localStorage only.
 
 ## Requirements
 
@@ -37,7 +38,7 @@ npm install
 npm run dist
 ```
 
-The binary lands in `dist/QuizSolver-0.3.0-x86_64.AppImage`. Make it executable and run it —
+The binary lands in `dist/QuizSolver-0.3.2-x86_64.AppImage`. Make it executable and run it —
 no installation needed:
 
 ```bash
@@ -61,12 +62,12 @@ npm start
 ## How the pipeline works (`lib/pipeline.js`)
 
 ```
-capture → answerQuestion(image, docs) → scoreAnswers(image, proposed) → answers + confidence
+capture → answerQuestion(image, docs) → scoreAnswers(questionText, proposed) → answers + confidence
 ```
 
 - `lib/openrouter.js` — two vision chat-completion calls in JSON mode:
   - **Vision answer model** — reads the question from the screenshot (+ document context), returns `question_text` and `answers[{choice, correct, explanation}]` covering every choice.
-  - **Vision decision model** — independently judges each choice from the image and returns `answers[{choice, correct, confidence, explanation}]`.
+  - **Decision model** — any chat model; receives the question text extracted by the answer model and returns `answers[{choice, correct, confidence, explanation}]`.
 - Output table shows each choice, correct/incorrect, confidence %, and explanation.
 
 ## Notes
