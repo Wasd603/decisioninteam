@@ -162,16 +162,21 @@ async function maybeCrop() {
 
 el('btn-source-cancel').onclick = () => sourceDialog.close();
 
+const TABS = ['capture', 'screenshot', 'text'];
+
 function switchTab(tab) {
   if (activeTab !== tab) debugLog('tab switched to ' + tab);
   activeTab = tab;
-  el('tab-btn-image').classList.toggle('active', tab === 'image');
-  el('tab-btn-text').classList.toggle('active', tab === 'text');
-  el('tab-image').hidden = tab !== 'image';
-  el('tab-text').hidden = tab !== 'text';
+  for (const t of TABS) {
+    el('tab-btn-' + t).classList.toggle('active', t === tab);
+    el('tab-' + t).hidden = t !== tab;
+  }
+  el('capture-preview-wrap').hidden = tab === 'text';
+  el('btn-recrop').hidden = tab === 'text' || !currentImage;
   updateSolveState();
 }
-el('tab-btn-image').onclick = () => switchTab('image');
+el('tab-btn-capture').onclick = () => switchTab('capture');
+el('tab-btn-screenshot').onclick = () => switchTab('screenshot');
 el('tab-btn-text').onclick = () => switchTab('text');
 
 el('btn-clear-capture').onclick = () => {
@@ -186,8 +191,9 @@ el('btn-clear-capture').onclick = () => {
 };
 
 function updateSolveState() {
+  const imageOk = !!currentImage && activeTab !== 'text';
   const textOk = activeTab !== 'text' || el('manual-question').value.trim().length > 0;
-  btnSolve.disabled = !(currentImage && activeTab === 'image') && !textOk;
+  btnSolve.disabled = !imageOk && !textOk;
 }
 el('manual-question').addEventListener('input', updateSolveState);
 
@@ -210,6 +216,7 @@ el('btn-upload').onclick = () => {
 window.addEventListener('paste', async (e) => {
   const item = [...(e.clipboardData.items || [])].find(i => i.type.startsWith('image/'));
   if (item) {
+    if (activeTab !== 'screenshot' && activeTab !== 'capture') switchTab('screenshot');
     setFrame(await readFileAsDataUrl(item.getAsFile()));
     setStatus('Pasted image loaded. Click Solve.');
   }

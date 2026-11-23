@@ -16,26 +16,31 @@
     <section id="pane-capture" class="pane">
       <h2>1. Get the question</h2>
       <div class="row tabs">
-        <button id="tab-btn-image" class="tab-btn active">Capture / screenshot</button>
-        <button id="tab-btn-text" class="tab-btn">Type the question</button>
+        <button id="tab-btn-capture" class="tab-btn active">Capture</button>
+        <button id="tab-btn-screenshot" class="tab-btn">Screenshot</button>
+        <button id="tab-btn-text" class="tab-btn">Type question</button>
       </div>
-      <div id="tab-image">
-      <div class="row">
-        <button id="btn-capture-screen">Capture screen</button>
-        <button id="btn-capture-window">Capture window</button>
-        <button id="btn-upload">Upload screenshot</button>
-        <label class="file-label">Paste image <input type="file" id="paste-hint" hidden></label>
-        <button id="btn-clear-capture" class="ghost" hidden>Clear capture</button>
+      <div id="tab-capture">
+        <div class="row">
+          <button id="btn-capture-screen">Capture screen</button>
+          <button id="btn-capture-window">Capture window</button>
+        </div>
       </div>
-      <div id="capture-preview-wrap">
-        <img id="capture-preview" alt="Captured question" hidden>
-        <p id="capture-placeholder">No capture yet — use a capture button, upload a screenshot, or paste (Ctrl+V).</p>
-      </div>
-      <button id="btn-recrop" hidden>Adjust crop</button>
+      <div id="tab-screenshot" hidden>
+        <div class="row">
+          <button id="btn-upload">Upload screenshot</button>
+          <button id="btn-clear-capture" class="ghost" hidden>Clear capture</button>
+          <span class="muted">or paste an image with Ctrl+V</span>
+        </div>
       </div>
       <div id="tab-text" hidden>
         <textarea id="manual-question" rows="8" placeholder="Paste or type the question and its answer choices here, e.g.:&#10;Care este capitala...?&#10;A. ...&#10;B. ...&#10;C. ...&#10;D. ...&#10;E. ..."></textarea>
       </div>
+      <div id="capture-preview-wrap">
+        <img id="capture-preview" alt="Captured question" hidden>
+        <p id="capture-placeholder">No image yet — capture, upload, or paste one; or use the Type question tab.</p>
+      </div>
+      <button id="btn-recrop" hidden>Adjust crop</button>
     </section>
 
     <section id="pane-docs" class="pane">
