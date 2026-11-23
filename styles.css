@@ -180,3 +180,12 @@ dialog select {
 }
 
 .muted { color: var(--muted); font-size: 13px; }
+
+#secondary-results { margin-top: 12px; }
+.secondary-block { margin-top: 14px; }
+.secondary-block h4 { margin: 0 0 6px; font-size: 13px; color: var(--accent); }
+.secondary-block .sec-warning { color: var(--muted); font-size: 12px; }
+.secondary-block .sec-error { color: var(--bad); font-size: 12px; }
+
+.answer-table-sec { width: 100%; border-collapse: collapse; font-size: 12px; }
+.answer-table-sec th, .answer-table-sec td { border: 1px solid var(--border); padding: 4px 6px; text-align: left; }

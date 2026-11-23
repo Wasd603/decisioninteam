@@ -28,7 +28,9 @@ function loadSettings() {
     apiKey: localStorage.getItem('apiKey') || '',
     answerModel: localStorage.getItem('answerModel') || '',
     decisionModel: localStorage.getItem('decisionModel') || '',
-    reasoningEffort: localStorage.getItem('reasoningEffort') || 'default'
+    reasoningEffort: localStorage.getItem('reasoningEffort') || 'default',
+    secondaryModel1: localStorage.getItem('secondaryModel1') || '',
+    secondaryModel2: localStorage.getItem('secondaryModel2') || ''
   };
 }
 function saveSettings(s) {
@@ -36,6 +38,8 @@ function saveSettings(s) {
   localStorage.setItem('answerModel', s.answerModel);
   localStorage.setItem('decisionModel', s.decisionModel);
   localStorage.setItem('reasoningEffort', s.reasoningEffort);
+  localStorage.setItem('secondaryModel1', s.secondaryModel1);
+  localStorage.setItem('secondaryModel2', s.secondaryModel2);
 }
 
 const sourceDialog = el('source-dialog');
@@ -341,7 +345,8 @@ el('btn-solve').onclick = async () => {
       apiKey: settings.apiKey,
       answerModel: settings.answerModel,
       decisionModel: settings.decisionModel,
-      reasoningEffort: settings.reasoningEffort
+      reasoningEffort: settings.reasoningEffort,
+      secondaryModels: [settings.secondaryModel1, settings.secondaryModel2].filter(Boolean)
     });
     if (!res.ok) throw new Error(res.error);
     const t = res.result.timing || {};
@@ -365,24 +370,50 @@ function renderResults(result) {
     setStatus('Model returned no answers.', true);
     return;
   }
-  for (const a of rows) {
-    const tr = document.createElement('tr');
-    const choice = document.createElement('td');
-    choice.textContent = a.choice;
-    const correct = document.createElement('td');
-    correct.textContent = a.correct ? '✔ correct' : '✘ incorrect';
-    correct.className = a.correct ? 'correct' : 'incorrect';
-    const conf = document.createElement('td');
-    conf.textContent = typeof a.confidence === 'number' ? (a.confidence * 100).toFixed(0) + '%' : (a.confidence ?? '—');
-    const expl = document.createElement('td');
-    expl.textContent = a.explanation || '';
-    tr.append(choice, correct, conf, expl);
-    tbody.appendChild(tr);
-  }
+  answerTableRows(tbody, rows);
+  renderSecondary(result.secondary || []);
+  el('main-model-label').hidden = !((result.secondary || []).length);
   el('ocr-text').textContent = result.questionText || '(model returned no question text)';
   el('results').hidden = false;
   el('answers-placeholder').hidden = true;
   el('pane-answers').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+
+function answerTableRows(tbody, rows) {
+  answerTableRows(tbody, rows);
+}
+
+function renderSecondary(secondary) {
+  const wrap = el('secondary-results');
+  wrap.innerHTML = '';
+  for (const s of secondary) {
+    const block = document.createElement('div');
+    block.className = 'secondary-block';
+    const h = document.createElement('h4');
+    h.textContent = 'Secondary: ' + s.model;
+    block.appendChild(h);
+    if (s.error) {
+      const e = document.createElement('p');
+      e.className = 'sec-error';
+      e.textContent = 'failed: ' + s.error;
+      block.appendChild(e);
+    } else {
+      if (s.warning) {
+        const w = document.createElement('p');
+        w.className = 'sec-warning';
+        w.textContent = s.warning;
+        block.appendChild(w);
+      }
+      const table = document.createElement('table');
+      table.className = 'answer-table-sec';
+      table.innerHTML = '<thead><tr><th>Choice</th><th>Correct</th><th>Confidence</th></tr></thead><tbody></tbody>';
+      answerTableRows(table.querySelector('tbody'), s.answers || []);
+      block.appendChild(table);
+      debugLog('secondary ' + s.model + ': ' + (s.answers || []).map(a => a.choice + (a.correct ? '✔' : '✘')).join(' ') + (s.answerMs != null ? ' (' + s.answerMs + 'ms)' : ''));
+    }
+    wrap.appendChild(block);
+  }
 }
 
 el('btn-settings').onclick = () => {
@@ -391,6 +422,8 @@ el('btn-settings').onclick = () => {
   el('answer-model').value = s.answerModel;
   el('decision-model').value = s.decisionModel;
   el('reasoning-effort').value = s.reasoningEffort || 'default';
+  el('secondary-model-1').value = s.secondaryModel1;
+  el('secondary-model-2').value = s.secondaryModel2;
   settingsDialog.showModal();
 };
 el('btn-settings-save').onclick = () => {
@@ -399,7 +432,9 @@ el('btn-settings-save').onclick = () => {
     apiKey: el('api-key').value.trim(),
     answerModel: el('answer-model').value.trim(),
     decisionModel: el('decision-model').value.trim(),
-    reasoningEffort: el('reasoning-effort').value
+    reasoningEffort: el('reasoning-effort').value,
+    secondaryModel1: el('secondary-model-1').value.trim(),
+    secondaryModel2: el('secondary-model-2').value.trim()
   });
   settingsDialog.close();
 };

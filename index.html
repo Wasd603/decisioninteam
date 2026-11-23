@@ -61,6 +61,8 @@
 
     <section id="pane-answers" class="pane">
       <h2>4. Answers <small>(up to 5 choices, several may be correct)</small></h2>
+      <h3 id="main-model-label" hidden>Main model</h3>
+      <div id="secondary-results"></div>
       <div id="results" hidden>
         <table id="answer-table">
           <thead><tr><th>Choice</th><th>Correct</th><th>Confidence</th><th>Explanation</th></tr></thead>
@@ -98,6 +100,12 @@
     </label>
     <label>Decision model (vision, confidence scoring)
       <input type="text" id="decision-model" placeholder="openai/gpt-4o-mini">
+    </label>
+    <label>Secondary model 1 (optional, answered + scored in parallel)
+      <input type="text" id="secondary-model-1" placeholder="e.g. google/gemini-2.0-flash-001">
+    </label>
+    <label>Secondary model 2 (optional)
+      <input type="text" id="secondary-model-2" placeholder="e.g. perplexity/sonar-reasoning-pro">
     </label>
     <label>Reasoning level
       <select id="reasoning-effort">
