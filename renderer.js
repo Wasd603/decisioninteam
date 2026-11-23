@@ -1,5 +1,17 @@
 const el = (id) => document.getElementById(id);
 
+
+const debugLogEl = el('debug-log');
+function debugLog(msg) {
+  const ts = new Date().toISOString().slice(11, 23);
+  const lines = debugLogEl.textContent ? debugLogEl.textContent.split('\n') : [];
+  lines.push('[' + ts + '] ' + msg);
+  while (lines.length > 300) lines.shift();
+  debugLogEl.textContent = lines.join('\n');
+  debugLogEl.scrollTop = debugLogEl.scrollHeight;
+}
+el('btn-debug-clear').onclick = () => { debugLogEl.textContent = ''; };
+
 const settingsDialog = el('settings-dialog');
 const capturePreview = el('capture-preview');
 const capturePlaceholder = el('capture-placeholder');
@@ -95,11 +107,13 @@ async function grabFrame(sourceId, name) {
     await maybeCrop();
     setStatus(`Captured: ${name}. Click Solve, or Adjust crop.`);
   } catch (err) {
+    debugLog('capture FAILED: ' + err.message);
     setStatus(`Capture failed: ${err.message}`, true);
   }
 }
 
 function setFrame(dataUrl) {
+  debugLog('image set (' + Math.round(dataUrl.length / 1024) + ' KB base64)');
   currentImage = dataUrl;
   capturePreview.src = dataUrl;
   capturePreview.hidden = false;
@@ -149,6 +163,7 @@ async function maybeCrop() {
 el('btn-source-cancel').onclick = () => sourceDialog.close();
 
 function switchTab(tab) {
+  if (activeTab !== tab) debugLog('tab switched to ' + tab);
   activeTab = tab;
   el('tab-btn-image').classList.toggle('active', tab === 'image');
   el('tab-btn-text').classList.toggle('active', tab === 'text');
@@ -160,6 +175,7 @@ el('tab-btn-image').onclick = () => switchTab('image');
 el('tab-btn-text').onclick = () => switchTab('text');
 
 el('btn-clear-capture').onclick = () => {
+  debugLog('capture cleared');
   currentImage = null;
   capturePreview.hidden = true;
   capturePreview.src = '';
@@ -259,8 +275,10 @@ el('btn-analyze-docs').onclick = async () => {
     });
     if (!res.ok) throw new Error(res.error);
     docDigest = res.digest;
+    debugLog('document digest ready: ' + res.digest.length + ' chars');
     setStatus('Document context ready (' + res.digest.length + ' chars). Solving will use it.');
   } catch (err) {
+    debugLog('document analysis FAILED: ' + err.message);
     setStatus('Document analysis failed: ' + err.message, true);
   } finally {
     btn.disabled = false;
@@ -314,9 +332,13 @@ el('btn-solve').onclick = async () => {
       decisionModel: settings.decisionModel
     });
     if (!res.ok) throw new Error(res.error);
+    const t = res.result.timing || {};
+    debugLog('answers: ' + (res.result.answers || []).map(a => a.choice + (a.correct ? '✔' : '✘') + ' ' + (typeof a.confidence === 'number' ? (a.confidence * 100).toFixed(0) + '%' : '—')).join(' | '));
+    debugLog('timings — answer: ' + t.answerMs + 'ms, decision: ' + t.decisionMs + 'ms, total: ' + t.totalMs + 'ms');
     renderResults(res.result);
     setStatus(res.result.warning || 'Done.', !!res.result.warning);
   } catch (err) {
+    debugLog('solve FAILED: ' + err.message);
     setStatus(err.message, true);
   } finally {
     btnSolve.disabled = false;
@@ -357,6 +379,7 @@ el('btn-settings').onclick = () => {
   settingsDialog.showModal();
 };
 el('btn-settings-save').onclick = () => {
+  debugLog('settings saved (answer model: ' + (el('answer-model').value.trim() || 'default') + ', decision model: ' + (el('decision-model').value.trim() || 'default') + ')');
   saveSettings({
     apiKey: el('api-key').value.trim(),
     answerModel: el('answer-model').value.trim(),
@@ -365,3 +388,5 @@ el('btn-settings-save').onclick = () => {
   settingsDialog.close();
 };
 el('btn-settings-close').onclick = () => settingsDialog.close();
+
+debugLog('app ready');
