@@ -7,6 +7,7 @@ const btnSolve = el('btn-solve');
 const statusEl = el('status');
 
 let currentImage = null;
+let activeTab = 'image';
 let documents = [];
 let docDigest = null;
 
@@ -103,7 +104,8 @@ function setFrame(dataUrl) {
   capturePreview.src = dataUrl;
   capturePreview.hidden = false;
   capturePlaceholder.hidden = true;
-  btnSolve.disabled = false;
+  el('btn-clear-capture').hidden = false;
+  updateSolveState();
 }
 
 
@@ -145,6 +147,33 @@ async function maybeCrop() {
 }
 
 el('btn-source-cancel').onclick = () => sourceDialog.close();
+
+function switchTab(tab) {
+  activeTab = tab;
+  el('tab-btn-image').classList.toggle('active', tab === 'image');
+  el('tab-btn-text').classList.toggle('active', tab === 'text');
+  el('tab-image').hidden = tab !== 'image';
+  el('tab-text').hidden = tab !== 'text';
+  updateSolveState();
+}
+el('tab-btn-image').onclick = () => switchTab('image');
+el('tab-btn-text').onclick = () => switchTab('text');
+
+el('btn-clear-capture').onclick = () => {
+  currentImage = null;
+  capturePreview.hidden = true;
+  capturePreview.src = '';
+  capturePlaceholder.hidden = false;
+  el('btn-recrop').hidden = true;
+  el('btn-clear-capture').hidden = true;
+  updateSolveState();
+};
+
+function updateSolveState() {
+  const textOk = activeTab !== 'text' || el('manual-question').value.trim().length > 0;
+  btnSolve.disabled = !(currentImage && activeTab === 'image') && !textOk;
+}
+el('manual-question').addEventListener('input', updateSolveState);
 
 el('btn-capture-screen').onclick = () => captureSource('screen');
 el('btn-capture-window').onclick = () => captureSource('window');
@@ -261,7 +290,8 @@ function renderDocs() {
 }
 
 el('btn-solve').onclick = async () => {
-  if (!currentImage) return;
+  const manualText = el('manual-question').value.trim();
+  if (!currentImage && !manualText) return;
   const settings = loadSettings();
   if (!settings.apiKey) {
     setStatus('Add your OpenRouter API key in Settings first.', true);
@@ -270,11 +300,13 @@ el('btn-solve').onclick = async () => {
   }
   btnSolve.disabled = true;
   el('results').hidden = true;
-  setStatus('Reading the question with the vision model…');
+  setStatus(useText ? 'Asking the model…' : 'Reading the question with the vision model…');
   try {
-    const image = await optimizeImage(currentImage);
+    const useText = activeTab === 'text' || (!currentImage && manualText);
+    const image = (!useText && currentImage) ? await optimizeImage(currentImage) : null;
     const res = await window.api.solveQuestion({
       image,
+      manualText: useText ? manualText : null,
       documents,
       docDigest,
       apiKey: settings.apiKey,

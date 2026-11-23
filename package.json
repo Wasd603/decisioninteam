@@ -1,6 +1,6 @@
 {
   "name": "quiz-solver",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Desktop quiz assistant: capture a multiple-choice question from screen, embedded browser, or screenshot; a vision model reads it via OpenRouter and answers with confidence scoring.",
   "main": "main.js",
   "scripts": {
