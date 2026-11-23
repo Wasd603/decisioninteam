@@ -27,13 +27,15 @@ function loadSettings() {
   return {
     apiKey: localStorage.getItem('apiKey') || '',
     answerModel: localStorage.getItem('answerModel') || '',
-    decisionModel: localStorage.getItem('decisionModel') || ''
+    decisionModel: localStorage.getItem('decisionModel') || '',
+    reasoningEffort: localStorage.getItem('reasoningEffort') || 'default'
   };
 }
 function saveSettings(s) {
   localStorage.setItem('apiKey', s.apiKey);
   localStorage.setItem('answerModel', s.answerModel);
   localStorage.setItem('decisionModel', s.decisionModel);
+  localStorage.setItem('reasoningEffort', s.reasoningEffort);
 }
 
 const sourceDialog = el('source-dialog');
@@ -278,6 +280,7 @@ el('btn-analyze-docs').onclick = async () => {
     const res = await window.api.analyzeDocuments({
       apiKey: settings.apiKey,
       answerModel: settings.answerModel,
+      reasoningEffort: settings.reasoningEffort,
       documents
     });
     if (!res.ok) throw new Error(res.error);
@@ -337,7 +340,8 @@ el('btn-solve').onclick = async () => {
       docDigest,
       apiKey: settings.apiKey,
       answerModel: settings.answerModel,
-      decisionModel: settings.decisionModel
+      decisionModel: settings.decisionModel,
+      reasoningEffort: settings.reasoningEffort
     });
     if (!res.ok) throw new Error(res.error);
     const t = res.result.timing || {};
@@ -386,6 +390,7 @@ el('btn-settings').onclick = () => {
   el('api-key').value = s.apiKey;
   el('answer-model').value = s.answerModel;
   el('decision-model').value = s.decisionModel;
+  el('reasoning-effort').value = s.reasoningEffort || 'default';
   settingsDialog.showModal();
 };
 el('btn-settings-save').onclick = () => {
@@ -393,7 +398,8 @@ el('btn-settings-save').onclick = () => {
   saveSettings({
     apiKey: el('api-key').value.trim(),
     answerModel: el('answer-model').value.trim(),
-    decisionModel: el('decision-model').value.trim()
+    decisionModel: el('decision-model').value.trim(),
+    reasoningEffort: el('reasoning-effort').value
   });
   settingsDialog.close();
 };

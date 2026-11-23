@@ -98,7 +98,8 @@ ipcMain.handle('analyze-documents', async (_event, payload) => {
     const digest = await analyzeDocuments({
       apiKey: payload.apiKey,
       model: payload.answerModel,
-      documents: payload.documents
+      documents: payload.documents,
+      reasoningEffort: payload.reasoningEffort
     });
     return { ok: true, digest };
   } catch (err) {
