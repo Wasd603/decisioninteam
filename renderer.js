@@ -411,7 +411,20 @@ function renderResults(result) {
 
 
 function answerTableRows(tbody, rows) {
-  answerTableRows(tbody, rows);
+  for (const a of rows) {
+    const tr = document.createElement('tr');
+    const choice = document.createElement('td');
+    choice.textContent = a.choice ?? '?';
+    const correct = document.createElement('td');
+    correct.textContent = a.correct ? '✔ correct' : '✘ incorrect';
+    correct.className = a.correct ? 'correct' : 'incorrect';
+    const conf = document.createElement('td');
+    conf.textContent = typeof a.confidence === 'number' ? (a.confidence * 100).toFixed(0) + '%' : (a.confidence ?? '—');
+    const expl = document.createElement('td');
+    expl.textContent = a.explanation || '';
+    tr.append(choice, correct, conf, expl);
+    tbody.appendChild(tr);
+  }
 }
 
 
