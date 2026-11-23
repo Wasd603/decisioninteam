@@ -32,7 +32,8 @@ function loadSettings() {
     decisionModel: localStorage.getItem('decisionModel') || '',
     reasoningEffort: localStorage.getItem('reasoningEffort') || 'default',
     secondaryModel1: localStorage.getItem('secondaryModel1') || '',
-    secondaryModel2: localStorage.getItem('secondaryModel2') || ''
+    secondaryModel2: localStorage.getItem('secondaryModel2') || '',
+    ocrStage: localStorage.getItem('ocrStage') || 'mistral-ocr'
   };
 }
 function saveSettings(s) {
@@ -42,6 +43,7 @@ function saveSettings(s) {
   localStorage.setItem('reasoningEffort', s.reasoningEffort);
   localStorage.setItem('secondaryModel1', s.secondaryModel1);
   localStorage.setItem('secondaryModel2', s.secondaryModel2);
+  localStorage.setItem('ocrStage', s.ocrStage);
 }
 
 const sourceDialog = el('source-dialog');
@@ -140,12 +142,11 @@ async function optimizeImage(dataUrl) {
   });
   const maxSide = 1600;
   const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
-  if (scale === 1) return dataUrl;
   const canvas = document.createElement('canvas');
   canvas.width = Math.round(img.naturalWidth * scale);
   canvas.height = Math.round(img.naturalHeight * scale);
   canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL('image/jpeg', 0.9);
+  return canvas.toDataURL('image/jpeg', 0.92);
 }
 
 function setStatus(text, isError) {
@@ -349,7 +350,8 @@ el('btn-solve').onclick = async () => {
   try {
     const useText = activeTab === 'text' || (!currentImage && manualText);
     debugLog('solve start — mode=' + (useText ? 'text' : 'image') + ', docs=' + documents.length + (docDigest ? ', digest=' + docDigest.length + ' chars' : ', no digest'));
-    setStatus(useText ? 'Asking the model…' : 'Reading the question with the vision model…');
+    const ocrOn = !useText && (loadSettings().ocrStage || 'mistral-ocr') !== 'off';
+    setStatus(useText ? 'Asking the model…' : (ocrOn ? 'Running Mistral OCR on the capture…' : 'Reading the question with the vision model…'));
     const image = (!useText && currentImage) ? await optimizeImage(currentImage) : null;
     const res = await window.api.solveQuestion({
       image,
@@ -360,13 +362,22 @@ el('btn-solve').onclick = async () => {
       answerModel: settings.answerModel,
       decisionModel: settings.decisionModel,
       reasoningEffort: settings.reasoningEffort,
+      ocrStage: settings.ocrStage,
       secondaryModels: [settings.secondaryModel1, settings.secondaryModel2].filter(Boolean)
     });
     if (!res.ok) throw new Error(res.error);
     const t = res.result.timing || {};
+    if (res.result.ocrText) debugLog('OCR (mistral-ocr): ' + res.result.ocrText.length + ' chars in ' + (t.ocrMs != null ? t.ocrMs : '?') + 'ms');
     debugLog('answers: ' + (res.result.answers || []).map(a => a.choice + (a.correct ? '✔' : '✘') + ' ' + (typeof a.confidence === 'number' ? (a.confidence * 100).toFixed(0) + '%' : '—')).join(' | '));
     debugLog('timings — answer: ' + t.answerMs + 'ms, decision: ' + t.decisionMs + 'ms, total: ' + t.totalMs + 'ms');
-    renderResults(res.result);
+    try {
+      renderResults(res.result);
+    } catch (renderErr) {
+      debugLog('render failed (answers preserved): ' + renderErr.message);
+      if (renderErr.stack) debugLog('render stack: ' + String(renderErr.stack).split('\n').slice(0, 6).join(' | '));
+      setStatus('Answers received but display failed: ' + (res.result.answers || []).map(a => a.choice + (a.correct ? '✔' : '✘')).join(' '), true);
+      return;
+    }
     setStatus(res.result.warning || 'Done.', !!res.result.warning);
   } catch (err) {
     debugLog('solve FAILED: ' + err.message);
@@ -388,7 +399,7 @@ function renderResults(result) {
   renderSecondary(result.secondary || []);
   renderConsensus(result);
   el('main-model-label').hidden = !((result.secondary || []).length);
-  el('ocr-text').textContent = result.questionText || '(model returned no question text)';
+  el('ocr-text').textContent = (result.ocrText ? result.ocrText.replace(/<file[^>]*>/g, '').trim() : '') || result.questionText || '(model returned no question text)';
   el('results').hidden = false;
   el('answers-placeholder').hidden = true;
   try {
@@ -486,6 +497,7 @@ el('btn-settings').onclick = () => {
   el('reasoning-effort').value = s.reasoningEffort || 'default';
   el('secondary-model-1').value = s.secondaryModel1;
   el('secondary-model-2').value = s.secondaryModel2;
+  el('ocr-stage').value = s.ocrStage || 'mistral-ocr';
   settingsDialog.showModal();
 };
 el('btn-settings-save').onclick = () => {
@@ -496,7 +508,8 @@ el('btn-settings-save').onclick = () => {
     decisionModel: el('decision-model').value.trim(),
     reasoningEffort: el('reasoning-effort').value,
     secondaryModel1: el('secondary-model-1').value.trim(),
-    secondaryModel2: el('secondary-model-2').value.trim()
+    secondaryModel2: el('secondary-model-2').value.trim(),
+    ocrStage: el('ocr-stage').value
   });
   settingsDialog.close();
 };

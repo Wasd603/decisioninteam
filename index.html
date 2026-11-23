@@ -114,6 +114,12 @@
     <label>Secondary model 2 (optional)
       <input type="text" id="secondary-model-2" placeholder="e.g. perplexity/sonar-reasoning-pro">
     </label>
+    <label>OCR stage (image solves)
+      <select id="ocr-stage">
+        <option value="mistral-ocr">Mistral OCR (extract text via OCR engine, then answer with text)</option>
+        <option value="off">Off — send the image directly to the vision model</option>
+      </select>
+    </label>
     <label>Reasoning level
       <select id="reasoning-effort">
         <option value="default">Default (model default)</option>
