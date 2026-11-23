@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog, desktopCapturer, systemPreferences } = require('electron');
 const path = require('path');
 const { runPipeline } = require('./lib/pipeline');
+const { analyzeDocuments } = require('./lib/openrouter');
 
 let mainWindow = null;
 
@@ -84,6 +85,22 @@ ipcMain.handle('pick-document', async () => {
 ipcMain.handle('solve-question', async (_event, payload) => {
   try {
     return { ok: true, result: await runPipeline(payload) };
+  } catch (err) {
+    return { ok: false, error: String(err && err.message ? err.message : err) };
+  }
+});
+
+ipcMain.handle('analyze-documents', async (_event, payload) => {
+  try {
+    if (!payload.documents || payload.documents.length === 0) {
+      return { ok: false, error: 'No documents selected.' };
+    }
+    const digest = await analyzeDocuments({
+      apiKey: payload.apiKey,
+      model: payload.answerModel,
+      documents: payload.documents
+    });
+    return { ok: true, digest };
   } catch (err) {
     return { ok: false, error: String(err && err.message ? err.message : err) };
   }

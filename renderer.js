@@ -8,6 +8,7 @@ const statusEl = el('status');
 
 let currentImage = null;
 let documents = [];
+let docDigest = null;
 
 function loadSettings() {
   return {
@@ -205,13 +206,43 @@ window.addEventListener('message', async (e) => {
 el('btn-add-docs').onclick = async () => {
   const docs = await window.api.pickDocument();
   for (const d of docs) documents.push(d);
+  docDigest = null;
   renderDocs();
 };
-el('btn-clear-docs').onclick = () => { documents = []; renderDocs(); };
+el('btn-clear-docs').onclick = () => { documents = []; docDigest = null; renderDocs(); };
+
+el('btn-analyze-docs').onclick = async () => {
+  if (!documents.length) return;
+  const settings = loadSettings();
+  if (!settings.apiKey) {
+    setStatus('Add your OpenRouter API key in Settings first.', true);
+    settingsDialog.showModal();
+    return;
+  }
+  const btn = el('btn-analyze-docs');
+  btn.disabled = true;
+  setStatus('Analyzing documents (one-time, may take a minute)…');
+  try {
+    const res = await window.api.analyzeDocuments({
+      apiKey: settings.apiKey,
+      answerModel: settings.answerModel,
+      documents
+    });
+    if (!res.ok) throw new Error(res.error);
+    docDigest = res.digest;
+    setStatus('Document context ready (' + res.digest.length + ' chars). Solving will use it.');
+  } catch (err) {
+    setStatus('Document analysis failed: ' + err.message, true);
+  } finally {
+    btn.disabled = false;
+    renderDocs();
+  }
+};
 
 function renderDocs() {
   const list = el('doc-list');
   list.innerHTML = '';
+  el('btn-analyze-docs').disabled = documents.length === 0;
   documents.forEach((d, i) => {
     const li = document.createElement('li');
     if (d.error) {
@@ -223,7 +254,7 @@ function renderDocs() {
     const rm = document.createElement('button');
     rm.textContent = '✕';
     rm.title = 'Remove';
-    rm.onclick = () => { documents.splice(i, 1); renderDocs(); };
+    rm.onclick = () => { documents.splice(i, 1); docDigest = null; renderDocs(); };
     li.appendChild(rm);
     list.appendChild(li);
   });
@@ -245,6 +276,7 @@ el('btn-solve').onclick = async () => {
     const res = await window.api.solveQuestion({
       image,
       documents,
+      docDigest,
       apiKey: settings.apiKey,
       answerModel: settings.answerModel,
       decisionModel: settings.decisionModel

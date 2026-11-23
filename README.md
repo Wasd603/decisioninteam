@@ -12,6 +12,9 @@ vision decision model (OpenRouter) that scores confidence → answers (up to 5 c
 - **Upload or paste** a screenshot file, or paste an image from the clipboard (Ctrl+V).
 - **Crop tool** — drag a rectangle around just the question for a cleaner, focused image.
 - **Reference documents** — attach txt/md/pdf/json/csv/html files; the answer model grounds its answer in them.
+- **Analyze documents** — one-time pre-analysis that digests the selected documents into a compact cheat-sheet
+  via the answer model; subsequent solves use the digest instead of the raw texts, making them faster and
+  giving the model the context up front. Re-runs automatically when the document set changes.
 - **Two-stage pipeline** — a vision-capable answer model reads the screenshot, extracts the question text, and
   proposes the correct choices; the extracted text is then passed to a decision model (any chat model, e.g.
   `openai/gpt-4o-mini` or `perplexity/sonar-reasoning-pro`) that independently verifies and scores each choice.
