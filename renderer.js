@@ -325,9 +325,10 @@ el('btn-solve').onclick = async () => {
   }
   btnSolve.disabled = true;
   el('results').hidden = true;
-  setStatus(useText ? 'Asking the model…' : 'Reading the question with the vision model…');
   try {
     const useText = activeTab === 'text' || (!currentImage && manualText);
+    debugLog('solve start — mode=' + (useText ? 'text' : 'image') + ', docs=' + documents.length + (docDigest ? ', digest=' + docDigest.length + ' chars' : ', no digest'));
+    setStatus(useText ? 'Asking the model…' : 'Reading the question with the vision model…');
     const image = (!useText && currentImage) ? await optimizeImage(currentImage) : null;
     const res = await window.api.solveQuestion({
       image,
@@ -376,6 +377,8 @@ function renderResults(result) {
   }
   el('ocr-text').textContent = result.questionText || '(model returned no question text)';
   el('results').hidden = false;
+  el('answers-placeholder').hidden = true;
+  el('pane-answers').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 el('btn-settings').onclick = () => {

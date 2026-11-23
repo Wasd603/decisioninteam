@@ -57,8 +57,11 @@
       <h2>3. Solve</h2>
       <button id="btn-solve" disabled>Solve question</button>
       <div id="status" class="status"></div>
+    </section>
+
+    <section id="pane-answers" class="pane">
+      <h2>4. Answers <small>(up to 5 choices, several may be correct)</small></h2>
       <div id="results" hidden>
-        <h3>Answers <small>(up to 5 choices, several may be correct)</small></h3>
         <table id="answer-table">
           <thead><tr><th>Choice</th><th>Correct</th><th>Confidence</th><th>Explanation</th></tr></thead>
           <tbody></tbody>
@@ -68,6 +71,7 @@
           <pre id="ocr-text"></pre>
         </details>
       </div>
+      <p id="answers-placeholder" class="muted">Answers will appear here after you solve a question.</p>
     </section>
     <section id="pane-debug" class="pane">
       <div class="row">
