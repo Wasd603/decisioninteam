@@ -22,6 +22,8 @@ let currentImage = null;
 let activeTab = 'image';
 let documents = [];
 let docDigest = null;
+// Documents and digest live only in memory: every app restart starts
+// with a clean document state. Only Settings persist (localStorage).
 
 function loadSettings() {
   return {
@@ -263,11 +265,23 @@ window.addEventListener('message', async (e) => {
 
 el('btn-add-docs').onclick = async () => {
   const docs = await window.api.pickDocument();
-  for (const d of docs) documents.push(d);
-  docDigest = null;
+  let added = 0;
+  for (const d of docs) {
+    if (documents.some(x => (x.filePath || x.name) === (d.filePath || d.name))) continue;
+    documents.push(d);
+    added++;
+  }
+  if (added) docDigest = null;
+  debugLog(added + ' document(s) added; total: ' + documents.length);
   renderDocs();
 };
-el('btn-clear-docs').onclick = () => { documents = []; docDigest = null; renderDocs(); };
+el('btn-clear-docs').onclick = () => {
+  documents = [];
+  docDigest = null;
+  renderDocs();
+  debugLog('documents and digest cleared');
+  setStatus('Documents cleared.');
+};
 
 el('btn-analyze-docs').onclick = async () => {
   if (!documents.length) return;
@@ -484,4 +498,13 @@ el('btn-settings-save').onclick = () => {
 };
 el('btn-settings-close').onclick = () => settingsDialog.close();
 
-debugLog('app ready');
+window.addEventListener('error', (e) => {
+  debugLog('UNCAUGHT ERROR: ' + e.message + ' @ ' + (e.filename || '') + ':' + (e.lineno || '?'));
+  if (e.error && e.error.stack) debugLog('stack: ' + String(e.error.stack).split('\n').slice(0, 6).join(' | '));
+});
+window.addEventListener('unhandledrejection', (e) => {
+  const r = e.reason;
+  debugLog('UNHANDLED REJECTION: ' + (r && r.message ? r.message : String(r)));
+  if (r && r.stack) debugLog('stack: ' + String(r.stack).split('\n').slice(0, 6).join(' | '));
+});
+debugLog('app ready — document state is fresh');
