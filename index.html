@@ -42,7 +42,7 @@
       <button id="btn-solve" disabled>Solve question</button>
       <div id="status" class="status"></div>
       <div id="results" hidden>
-        <h3>Answers <small>(1–4 may be correct)</small></h3>
+        <h3>Answers <small>(up to 5 choices, several may be correct)</small></h3>
         <table id="answer-table">
           <thead><tr><th>Choice</th><th>Correct</th><th>Confidence</th><th>Explanation</th></tr></thead>
           <tbody></tbody>
@@ -54,6 +54,12 @@
       </div>
     </section>
   </main>
+
+  <dialog id="source-dialog">
+    <h2 id="source-dialog-title">Capture</h2>
+    <div id="source-list"></div>
+    <div class="row"><button id="btn-source-cancel" class="ghost">Cancel</button></div>
+  </dialog>
 
   <dialog id="settings-dialog">
     <h2>Settings</h2>

@@ -22,26 +22,50 @@ function saveSettings(s) {
   localStorage.setItem('decisionModel', s.decisionModel);
 }
 
-async function captureSource(type) {
-  const sources = type === 'window'
-    ? await window.api.listWindows()
-    : await window.api.listScreens();
+const sourceDialog = el('source-dialog');
 
+function pickSource(type, sources) {
+  return new Promise((resolve) => {
+    const list = el('source-list');
+    list.innerHTML = '';
+    el('source-dialog-title').textContent = type === 'window' ? 'Capture which window?' : 'Capture which screen?';
+    for (const s of sources) {
+      const item = document.createElement('button');
+      item.className = 'source-item';
+      if (s.thumb) {
+        const img = document.createElement('img');
+        img.src = s.thumb;
+        item.appendChild(img);
+      }
+      const label = document.createElement('span');
+      label.textContent = s.name;
+      item.appendChild(label);
+      item.onclick = () => {
+        sourceDialog.close();
+        resolve(s);
+      };
+      list.appendChild(item);
+    }
+    sourceDialog.onclose = () => resolve(null);
+    sourceDialog.showModal();
+  });
+}
+
+async function captureSource(type) {
+  let sources;
+  try {
+    sources = type === 'window' ? await window.api.listWindows() : await window.api.listScreens();
+  } catch (err) {
+    setStatus(`Could not list capturable ${type}s: ${err.message}`, true);
+    return;
+  }
   if (!sources.length) {
     setStatus(`No capturable ${type} found.`, true);
     return;
   }
-
-  const choice = prompt(
-    `Capture which ${type}?\n\n${sources.map((s, i) => `${i + 1}. ${s.name}`).join('\n')}\n\nEnter a number:`
-  );
-  if (choice === null) return;
-  const idx = parseInt(choice, 10) - 1;
-  if (isNaN(idx) || idx < 0 || idx >= sources.length) {
-    setStatus('Invalid selection.', true);
-    return;
-  }
-  await grabFrame(sources[idx].id, sources[idx].name);
+  const chosen = await pickSource(type, sources);
+  if (!chosen) return;
+  await grabFrame(chosen.id, chosen.name);
 }
 
 async function grabFrame(sourceId, name) {
@@ -118,6 +142,8 @@ async function maybeCrop() {
     el('btn-recrop').hidden = false;
   }
 }
+
+el('btn-source-cancel').onclick = () => sourceDialog.close();
 
 el('btn-capture-screen').onclick = () => captureSource('screen');
 el('btn-capture-window').onclick = () => captureSource('window');

@@ -18,6 +18,13 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  const { session } = require('electron');
+  session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
+    callback(permission === 'media' || permission === 'clipboard-read' || permission === 'clipboard-sanitized-write');
+  });
+  session.defaultSession.setPermissionCheckHandler((webContents, permission) => {
+    return permission === 'media' || permission === 'clipboard-read' || permission === 'clipboard-sanitized-write';
+  });
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -28,20 +35,29 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
+function toSourceInfo(s) {
+  let thumb = null;
+  try {
+    const t = s.thumbnail.resize({ width: 320 });
+    thumb = t.toDataURL();
+  } catch (e) {}
+  return { id: s.id, name: s.name, thumb };
+}
+
 ipcMain.handle('list-screens', async () => {
   const sources = await desktopCapturer.getSources({
     types: ['screen'],
-    thumbnailSize: { width: 0, height: 0 }
+    thumbnailSize: { width: 640, height: 360 }
   });
-  return sources.map(s => ({ id: s.id, name: s.name }));
+  return sources.map(toSourceInfo);
 });
 
 ipcMain.handle('list-windows', async () => {
   const sources = await desktopCapturer.getSources({
     types: ['window'],
-    thumbnailSize: { width: 0, height: 0 }
+    thumbnailSize: { width: 640, height: 360 }
   });
-  return sources.map(s => ({ id: s.id, name: s.name }));
+  return sources.map(toSourceInfo);
 });
 
 ipcMain.handle('pick-document', async () => {

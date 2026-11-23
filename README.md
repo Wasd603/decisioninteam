@@ -4,7 +4,7 @@ A Linux-compatible Electron desktop app that answers multiple-choice questions c
 Questions in Romanian, Hungarian, and English are supported; a vision-capable model reads the screenshot directly, so no separate OCR stage is needed.
 
 **Flow:** capture a quiz question (window capture, screen capture, screenshot file, or paste) → vision answer model (OpenRouter) with optional user-selected reference documents →
-vision decision model (OpenRouter) that scores confidence → answers (1 to 4 may be correct) with confidence scores.
+vision decision model (OpenRouter) that scores confidence → answers (up to 5 choices, several may be correct) with confidence scores.
 
 ## Features
 
