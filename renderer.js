@@ -391,7 +391,11 @@ function renderResults(result) {
   el('ocr-text').textContent = result.questionText || '(model returned no question text)';
   el('results').hidden = false;
   el('answers-placeholder').hidden = true;
-  el('pane-answers').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  try {
+    el('pane-answers').scrollIntoView();
+  } catch (err) {
+    debugLog('scrollIntoView failed: ' + err.message);
+  }
 }
 
 
