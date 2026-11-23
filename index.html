@@ -61,6 +61,13 @@
 
     <section id="pane-answers" class="pane">
       <h2>4. Answers <small>(up to 5 choices, several may be correct)</small></h2>
+      <div id="consensus-block" hidden>
+        <h3>Consensus <small>(across all models that answered)</small></h3>
+        <table id="consensus-table">
+          <thead><tr><th>Choice</th><th>Votes</th><th>Avg confidence (marked correct)</th><th>Consensus</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
       <h3 id="main-model-label" hidden>Main model</h3>
       <div id="secondary-results"></div>
       <div id="results" hidden>

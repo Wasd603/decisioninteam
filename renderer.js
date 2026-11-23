@@ -372,6 +372,7 @@ function renderResults(result) {
   }
   answerTableRows(tbody, rows);
   renderSecondary(result.secondary || []);
+  renderConsensus(result);
   el('main-model-label').hidden = !((result.secondary || []).length);
   el('ocr-text').textContent = result.questionText || '(model returned no question text)';
   el('results').hidden = false;
@@ -382,6 +383,49 @@ function renderResults(result) {
 
 function answerTableRows(tbody, rows) {
   answerTableRows(tbody, rows);
+}
+
+
+function average(nums) {
+  return nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : null;
+}
+
+function renderConsensus(result) {
+  const scored = [{ model: 'main', answers: result.answers || [] }]
+    .concat((result.secondary || []).filter(s => s.answers && s.answers.length).map(s => ({ model: s.model, answers: s.answers })));
+  const block = el('consensus-block');
+  if (scored.length < 2) {
+    block.hidden = true;
+    return;
+  }
+  const byChoice = {};
+  for (const src of scored) {
+    for (const a of src.answers) {
+      if (!byChoice[a.choice]) byChoice[a.choice] = { votes: 0, confidences: [], total: 0 };
+      byChoice[a.choice].total++;
+      if (a.correct) {
+        byChoice[a.choice].votes++;
+        if (typeof a.confidence === 'number') byChoice[a.choice].confidences.push(a.confidence);
+      }
+    }
+  }
+  const tbody = el('consensus-table').querySelector('tbody');
+  tbody.innerHTML = '';
+  for (const [choice, d] of Object.entries(byChoice)) {
+    const tr = document.createElement('tr');
+    const c1 = document.createElement('td'); c1.textContent = choice;
+    const c2 = document.createElement('td'); c2.textContent = d.votes + '/' + d.total + ' models';
+    const c3 = document.createElement('td');
+    const avg = average(d.confidences);
+    c3.textContent = avg !== null ? (avg * 100).toFixed(0) + '%' : '—';
+    const c4 = document.createElement('td');
+    const ratio = d.votes / d.total;
+    c4.textContent = d.votes === d.total ? 'unanimous ✔' : (ratio >= 0.5 ? 'majority ✔' : 'majority ✘');
+    c4.className = ratio >= 0.5 ? 'correct' : 'incorrect';
+    tr.append(c1, c2, c3, c4);
+    tbody.appendChild(tr);
+  }
+  block.hidden = false;
 }
 
 function renderSecondary(secondary) {

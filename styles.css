@@ -189,3 +189,7 @@ dialog select {
 
 .answer-table-sec { width: 100%; border-collapse: collapse; font-size: 12px; }
 .answer-table-sec th, .answer-table-sec td { border: 1px solid var(--border); padding: 4px 6px; text-align: left; }
+
+#consensus-block { margin-bottom: 12px; padding: 10px; border: 1px solid var(--accent); border-radius: 6px; }
+#consensus-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+#consensus-table th, #consensus-table td { border: 1px solid var(--border); padding: 6px 8px; text-align: left; }
